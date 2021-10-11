@@ -1,0 +1,115 @@
+cambiar ip add en seriales de los routers
+cambiar contraseñas de los routers
+todos los routers se llaman igual
+configuracion DHCP de las pcs
+DHCP POOL CISCO la ip del server
+mascara de servidor 
+(= GATEWAY = 192.168.240.1/23 = 255.255.254.0)
+(IP SERVER = 192.168.240.2)
+
+//1
+router 1 y router 2 estan en la misma red en sus interfaces gi0/0
+Cambiar en R1 su mascara de /25 a /26 = (192.168.242.1/26)
+//R1
+ena
+conf t
+ho R1
+int gi0/0
+ip add 192.168.242.1 255.255.255.192
+no shut
+exit
+no enable secret
+enable secret cisco
+line con 0
+password cisco
+login
+line vty 0 4
+password cisco
+login
+end
+wr
+
+
+//2
+cambiar ip add en seriales de los routers
+//R0 
+ena
+conf t
+ho R0
+int s0/0/0
+ip add 192.168.243.250 255.255.255.252
+clock rate 128000
+no shut
+exit
+no enable secret
+enable secret cisco
+line con 0
+password cisco
+login
+line vty 0 4
+password cisco
+login
+end
+wr
+
+//R2
+ena
+conf t
+ho R2
+int s0/0/1
+ip add 192.168.243.246 255.255.255.252
+no shut
+exit
+int s0/0/0
+ip add 192.168.243.242 255.255.255.252
+no shut
+exit
+no enable secret
+enable secret cisco
+line con 0
+password cisco
+login
+line vty 0 4
+password cisco
+login
+end
+wr
+
+//R3
+ena
+conf t
+ho R3
+no enable secret
+enable secret cisco
+line con 0
+password cisco
+login
+line vty 0 4
+password cisco
+login
+end
+wr
+
+//DHCP POOL CISCO poner la IP correcta del server
+//R0, R2
+conf t
+ip dhcp pool cisco
+no dns-server 192.168.242.129
+dns-server 192.168.240.2
+end
+wr
+sh run
+
+//R1
+conf t
+ip dhcp pool cisco
+no network 192.168.242.0 255.255.255.128
+no default-router 192.168.242.1
+network 192.168.242.0 255.255.255.192
+default-router 192.168.240.1
+dns-server 192.168.240.2
+end
+wr
+sh run
+
+prender y apagar DHCP en pcs

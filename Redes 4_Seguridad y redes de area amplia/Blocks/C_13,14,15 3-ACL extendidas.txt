@@ -1,0 +1,247 @@
+------------ACL EXTENDIDA-------------
+**una sola ACL por interfaz del router
+**ACL elijo que 
+
+DEPTO A
+//router_a
+ena
+conf t
+int gi0/0
+ip add 172.16.32.1 255.255.254.0
+no shut
+int s0/0/0
+ip add 172.16.35.253 255.255.255.252
+clock rate 128000
+no shut
+int s0/0/1
+ip add 172.16.35.246 255.255.255.252
+clock rate 128000
+no shut
+
+DEPTO B
+//router_b
+ena
+conf t
+int gi0/0
+ip add 172.16.34.1 255.255.255.0
+no shut
+int s0/0/0
+ip add 172.16.35.249 255.255.255.252
+clock rate 128000
+no shut
+int s0/0/1
+ip add 172.16.35.254 255.255.255.252
+no shut
+
+DEPTO C
+//router_c
+ena
+conf t
+int gi0/0
+ip add 172.16.35.1 255.255.255.128
+no shut
+int s0/0/0
+ip add 172.16.35.245 255.255.255.252
+clock rate 128000
+no shut
+int s0/0/1
+ip add 172.16.35.250 255.255.255.252
+no shut
+
+//protocolo de encripcion MD, poner contraseña encriptada
+
+//en configuracion global para borrar
+//router 2
+no enable secret
+no ip dhcp pool cisco
+no router ospf 1
+no access-list 100
+do wr
+
+//router 1
+no ip dhcp pool cisco
+
+// para checar si hay lista de acceso en el router
+do sh acc 
+
+no router ospf 1
+do wr
+
+//router a / 0
+ena
+conf t
+router ospf 1
+network 172.16.32.0 0.0.1.255 area 0
+network 172.16.35.252 0.0.0.3 area 0
+network 172.16.35.244 0.0.0.3 area 0
+
+//router b / 1
+ena
+conf t
+router ospf 1
+network 172.16.34.0 0.0.1.255 area 0
+network 172.16.35.252 0.0.0.3 area 0
+network 172.16.35.248 0.0.0.3 area 0
+
+//router c / 2
+ena
+conf t
+router ospf 1
+network 172.16.35.0 0.0.0.127 area 0
+network 172.16.35.244 0.0.0.3 area 0
+network 172.16.35.248 0.0.0.3 area 0
+
+//configurar ip en hosts
+servidor DNS
+ip:      172.16.35.2
+mascara: 255.255.255.128
+gateway: 172.16.35.1
+
+//copiar ip del servidor en DNS server a todos los host
+servidor DNS  ip:172.16.35.2
+
+//C
+pc4:     172.16.35.3
+pc5:     172.16.35.4
+mascara: 255.255.255.128
+gateway: 172.16.35.1
+
+//B
+pc2:     172.16.34.2
+pc3:     172.16.34.3
+mascara: 255.255.255.0
+gateway: 172.16.34.1
+
+//A
+pc0:     172.16.32.3
+pc1:     172.16.32.2
+mascara: 255.255.254.0
+gateway: 172.16.32.1
+
+//continuara.....
+------------HTTP-------------
+//en servidor, http, index.html,edit
+//ping desde PC0 a servidor
+
+//router c / 2
+//  TCP | UDP  |  ICMP  |  IP 
+1//ACL 100-199 permit protocolo any/host wildcard host/eq puerto/echo/echo-reply 
+2//ACL 100-199 deny protocolo red wildcard host puerto/echo/echo-reply 
+// TFTP-UDP
+// FTP-TCP
+ena
+conf t
+access-list 100 permit tcp any 172.16.35.2 0.0.0.0 eq 80
+access-list 100 permit udp any 172.16.35.2 0.0.0.0 eq 53
+access-list 100 permit ip host 172.16.32.2 any
+access-list 100 permit icmp 172.16.32.0 0.0.1.255 host 172.16.35.4 echo
+access-list 100 permit icmp 172.16.32.0 0.0.1.255 host 172.16.35.4 echo-reply
+//permitir ping en host pc4 del depto a
+access-list 100 permit icmp 172.16.32.0 0.0.1.255 host 172.16.35.3 echo
+access-list 100 permit icmp 172.16.32.0 0.0.1.255 host 172.16.35.3 echo-reply
+//permitir ping en host pc5 del depto b 
+access-list 100 permit icmp 172.16.34.0 0.0.0.255 host 172.16.35.4 echo
+access-list 100 permit icmp 172.16.34.0 0.0.0.255 host 172.16.35.4 echo-reply
+//permitir ping en host pc4 del depto b
+access-list 100 permit icmp 172.16.34.0 0.0.0.255 host 172.16.35.3 echo
+access-list 100 permit icmp 172.16.34.0 0.0.0.255 host 172.16.35.3 echo-reply
+int gi0/0
+ip access-group 100 out
+
+//ip servidor 
+172.16.35.129
+
+//en router C
+ena
+conf t 
+int gi0/1
+ip add 172.16.35.142 255.255.255.240
+no shut
+
+conf t
+router ospf 1
+net 172.16.35.128 0.0.0.15 area 0
+
+//borrar ACL 100
+conf t
+no access-list 100
+do sh access-list
+do sh ip interface gi0/0
+
+//borrar aplicacion de la ACL 100
+conf t
+int gi0/0
+no ip access-group 100 out
+do wr
+
+
+------------FTP-------------
+//en servidor,services,TFTP
+c2900-universalk9-mz.SPA.155-3.M4a.bin
+
+//router a / 0
+ena
+sh version
+copy tftp falsh:
+172.16.35.129
+
+//copiar c2900...
+c2900-universalk9-mz.SPA.155-3.M4a.bin
+//enter
+dir flash:
+sh run
+
+delete flash:/c2900-universalk9-mz.SPA.151-4.M4.bin
+//enter
+dir flash:
+reload
+sh run
+
+//router c / 2
+ena 
+conf t 
+// TFTP-UDP
+//Lo que pertenece a la lista 100 puede accesar al servidor(host)
+access-list 100 permit udp 172.16.35.0 0.0.0.127 host 172.16.35.129 eq 69
+access-list 100 permit udp 172.16.35.142 0.0.0.0 host 172.16.35.129 eq 69
+int gi 0/1
+ip access-group 100 out
+end
+wr
+
+copy startup-config tftp
+//enter
+
+//router a / 0
+copy startup-config tftp
+172.16.35.129
+//enter
+
+**enviar o recibir archivos FTP PC0, PC1, PC2, PC3  | pc4 y pc5 SOLO TFTP*
+
+//TCP para DEPTO A Y B
+//router c / 2
+ena 
+conf t
+
+//DEPTO A
+access-list 100 permit tcp 172.16.32.0 0.0.1.255 host 172.16.35.129 eq 20
+access-list 100 permit tcp 172.16.32.3 0.0.0.0 host 172.16.35.129 eq 20
+access-list 100 permit tcp 172.16.32.0 0.0.1.255 host 172.16.35.129 eq 21
+access-list 100 permit tcp 172.16.32.3 0.0.0.0 host 172.16.35.129 eq 21
+access-list 100 permit ip host 172.16.32.3 any
+
+//DEPTO B
+access-list 100 permit tcp 172.16.34.0 0.0.0.255 host 172.16.35.129 eq 20
+access-list 100 permit tcp 172.16.34.2 0.0.0.0 host 172.16.35.129 eq 20
+access-list 100 permit tcp 172.16.34.0 0.0.0.255 host 172.16.35.129 eq 21
+access-list 100 permit tcp 172.16.34.2 0.0.0.0 host 172.16.35.129 eq 21
+
+access-list 100 permit tcp 172.16.34.0 0.0.0.255 host 172.16.35.129 eq 20
+access-list 100 permit tcp 172.16.34.3 0.0.0.0 host 172.16.35.129 eq 20
+access-list 100 permit tcp 172.16.34.0 0.0.0.255 host 172.16.35.129 eq 21
+access-list 100 permit tcp 172.16.34.3 0.0.0.0 host 172.16.35.129 eq 21
+access-list 100 permit ip host 172.16.34.2 any
+access-list 100 permit ip host 172.16.34.3 any
+int gi0/1
+ip access-group 100 out

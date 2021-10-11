@@ -1,0 +1,102 @@
+comandos clase2 
+PPP
+
+//R-STEVEN
+enable
+conf t
+username BELLO password cisco
+interface s0/0/1
+ip add 172.10.10.1 255.255.255.252
+no shut
+encapsulation ppp
+ppp authentication chap 
+
+//R-BELLO
+enable
+conf t
+username STEVEN password cisco
+interface s0/0/1
+ip add 172.10.10.2 255.255.255.252
+clock rate 128000
+no shut
+encapsulation ppp
+ppp authentication chap 
+exit
+
+//bello con hernandez
+conf t
+username HERNANDEZ password cisco
+interface s0/0/0
+ip add 192.1.1.1 255.255.255.252
+clock rate 128000
+no shut
+encapsulation ppp
+ppp authentication chap
+end 
+wr
+
+R-HERNANDEZ
+ena
+conf t
+username BELLO password cisco
+interface s0/0/0
+ip add 192.1.1.2 255.255.255.252
+no shut
+encapsulation ppp
+ppp authentication chap
+exit
+
+//EIGRP EN R-STEVEN
+conf t 
+interface gi0/0
+ip add 192.168.0.1 255.255.255.0
+no shut
+exit
+router eigrp 100
+net 172.10.10.0
+net 192.168.0.0
+no auto-summary
+end
+wr
+
+//host 1 steven
+192.168.0.11
+255.255.255.0
+192.168.0.1
+
+//host 2 steven
+192.168.0.12
+255.255.255.0
+192.168.0.1
+
+//EIGRP EN R-HERNADEZ
+conf t 
+interface gi0/0
+ip add 172.16.0.1 255.255.255.0
+no shut
+exit
+router eigrp 100
+net 172.16.0.0
+net 192.1.1.0
+no auto-summary
+end
+wr
+
+//host 1 hernandez
+172.16.0.11
+255.255.255.0
+172.16.0.1
+
+//host 2 hernandez
+172.16.0.12
+255.255.255.0
+172.16.0.1
+
+//EIGRP EN R-BELLO
+conf t 
+router eigrp 100
+net 172.10.10.0
+net 192.1.1.0
+no auto-summary
+end
+wr

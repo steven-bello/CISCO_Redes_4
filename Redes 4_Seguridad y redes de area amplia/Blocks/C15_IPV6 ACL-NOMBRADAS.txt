@@ -1,0 +1,109 @@
+IPV6
+
+//router 0
+ena 
+conf t
+int gi0/0
+ipv6 address 2001:aa::1/64
+no shut
+int s0/0/0
+ipv6 address 2001:dd::1/64
+clock rate 128000
+no shut
+
+//router 1
+ena 
+conf t
+int gi0/0
+ipv6 address 2001:bb::1/64
+no shut
+int gi0/1
+ipv6 address 2001:cc::1/64
+no shut
+int s0/0/1
+ipv6 address 2001:dd::2/64
+no shut
+
+//router 0 
+//ctrl + z = salir a modo privilegiado
+ping 2001:dd::2
+
+//HOST router O
+GATEWAY: 2001:aa::1
+PC0 IPV6:2001:aa::2
+PC1 IPV6:2001:aa::3
+
+//HOST router 1
+GATEWAY: 2001:bb::1
+PC2 IPV6:2001:bb::2
+PC3 IPV6:2001:bb::3
+
+//server
+GATEWAY:    2001:cc::1
+SERVER IPV6:2001:cc::2
+
+//ping hacia router 1 desde server
+ping 2001:cc::1
+
+//router 0
+ena
+conf t
+ipv6 unicast-routing
+ipv6 router eigrp 100
+eigrp router-id 1.1.1.1
+no shut
+int gi0/0
+ipv6 eigrp 100
+int s0/0/0
+ipv6 eigrp 100
+
+//router 1
+ena
+conf t
+ipv6 unicast-routing
+ipv6 router eigrp 100
+eigrp router-id 2.2.2.2
+no shut
+int gi0/0
+ipv6 eigrp 100
+int gi0/1
+ipv6 eigrp 100
+int s0/0/1
+ipv6 eigrp 100
+
+//ping desde pc0 al server
+ping 2001:cc::2
+
+//copiar ipv6 del server a todos los host en DNS
+2001:cc::2
+
+//SERVER
+-->pagina web: services,index,edit, mi nombre,guardar
+-->en DNS; ON, www.steven.com, ipv6 del server(2001:cc::2)
+
+//pc1: web browser, www.steven.com
+
+-->no ipv6 address * ipv6_add(2001...)= quitar ipv6 erronea
+
+----------------C16
+//router_1
+ena
+conf t
+ipv6 access-list empresa
+-->permit protocolo ip-origen destino no.puerto
+permit tcp any 2001:cc::2 eq 80
+permit udp any 2001:cc::2 eq 53
+permit ipv6 host 2001:aa::3 any
+permit tcp any host 2001:cc::2 eq pop
+permit tcp any host 2001:cc::2 eq smtp
+exit
+int gi0/1 
+ipv6 traffic-filter empresa out 
+
+-->permit ipv6 host ip-origen destino 
+permit ipv6 host 2001:aa::3 any
+
+//6
+-->permit protocolo origen(red) destino pings
+permit icmp 2001:bb::/64 host 2001:cc::2 echo-request
+permit icmp 2001:bb::/64 host 2001:cc::2 echo-reply

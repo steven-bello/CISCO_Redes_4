@@ -1,0 +1,227 @@
+MI NUMERO DE LISTA EN EL SEGUNDO OCTETO
+192.4.0.0
+
+*vtp para cuando hay mas de un switch para compartir vlan
+*Switch_Servidor = mas cercano al router
+
+
+//Switch_A
+enable
+conf t
+vlan 10
+name steven
+vlan 20
+name elotes-enterprices
+exit
+int range fa 0/1-7 
+switchport mode access
+switchport access vlan 10
+int range fa 0/8-15 
+switchport mode access
+switchport access vlan 20
+
+//enlace troncal en switch_a
+int gi0/1
+switchport mode access
+switchport mode trunk
+
+
+//Router_A
+ena
+conf t
+int gi0/0
+no shut
+int gi 0/0.10
+encapsulation dot1q 10
+ip add 192.4.0.1 255.255.255.128
+int gi 0/0.20
+encapsulation dot1q 20
+ip add 192.4.0.129 255.255.255.128
+
+//host vlan 10 A
+gateway: 192.4.0.1 255.255.255.128
+pc0: 192.4.0.2
+
+//host vlan 20 A
+gateway: 192.4.0.129 255.255.255.128
+pc1: 192.4.0.130
+
+
+//*Switch_Servidor
+enable 
+conf t
+vtp mode server
+vtp domain cisco
+vtp password cisco
+vlan 10
+name sabh1
+vlan 20 
+name sabh2
+vlan 30
+name sabh3
+
+
+//Switch_Cliente ambos
+enable 
+conf t
+vtp mode client
+vtp domain cisco
+vtp password cisco
+
+
+//Switch_Servidor
+interface range fa 0/22-24
+switchport mode access 
+channel-group 1 mode passive
+interface port-channel 1
+switchport mode access 
+switchport mode trunk
+
+//*Switch_Servidor
+interface range fa 0/18-21
+switchport mode access 
+channel-group 2 mode active
+interface port-channel 2
+switchport mode access 
+switchport mode trunk
+--sh vlan
+
+
+//Switch_Cliente_Izq
+interface range fa 0/22-24
+switchport mode access 
+channel-group 1 mode passive
+interface port-channel 1
+switchport mode access 
+switchport mode trunk
+
+//Switch_Cliente_Der
+interface range fa 0/18-21
+switchport mode access 
+channel-group 2 mode active
+interface port-channel 2
+switchport mode access 
+switchport mode trunk
+
+
+//Router_B
+ena
+conf t
+int gi0/0
+no shut
+int gi 0/0.10
+encapsulation dot1q 10
+ip add 192.4.1.1 255.255.255.192
+int gi 0/0.20
+encapsulation dot1q 20
+ip add 192.4.1.65 255.255.255.192
+int gi 0/0.30
+encapsulation dot1q 30
+ip add 192.4.1.129 255.255.255.192
+
+--sh ip interface brief
+
+//Host vlan 10
+gateway: 192.4.1.1 255.255.255.192
+pc2: 192.4.1.2
+pc5: 192.4.1.3
+
+//Host vlan 20
+gateway: 192.4.1.65 255.255.255.192
+pc3: 192.4.1.66
+pc6: 192.4.1.67
+
+//Host vlan 30
+gateway: 192.4.1.129 255.255.255.192
+pc4: 192.4.1.130
+pc7: 192.4.1.131
+
+
+//Ambos clientes Switch_Cliente
+ena 
+conf t
+interface range fa 0/1-4
+switchport mode access
+switchport access vlan 10
+interface range fa 0/5-9
+switchport mode access
+switchport access vlan 20
+interface range fa 0/10-14
+switchport mode access
+switchport access vlan 30
+
+
+//Enlace troncal en Switch_Servidor
+interface gi0/1
+switchport mode access
+switchport mode trunk
+
+
+//Enlace 1 en Router_A
+192.4.1.252/30
+ena 
+conf t
+int s0/0/0
+ip add 192.4.1.253 255.255.255.252
+clock rate 128000
+no shut
+
+//Enlace 2 en Router_B
+192.4.1.248/30
+ena 
+conf t
+int s0/0/1
+ip add 192.4.1.250 255.255.255.252
+no shut
+
+//Router_ISP
+ena 
+conf t
+int s0/0/1
+ip add 192.4.1.254 255.255.255.252
+no shut
+int s0/0/0
+ip add 192.4.1.249 255.255.255.252
+clock rate 128000
+no shut
+
+//Tunnel Router_A
+conf t
+int tunnel 0
+ip add 10.10.10.1 255.255.255.252
+tunnel source s0/0/0
+tunnel destination 192.4.1.250
+
+//Tunnel Router_B
+conf t
+int tunnel 0
+ip add 10.10.10.2 255.255.255.252
+tunnel source s0/0/1
+tunnel destination 192.4.1.253
+
+//Activacion del tunel Router_A
+ip route 0.0.0.0 0.0.0.0 s0/0/0
+
+//Activacion del tunel Router_B
+ip route 0.0.0.0 0.0.0.0 s0/0/1
+
+//Protocolo OSPF en Router_A
+conf t
+router ospf 1
+net 192.4.0.0 0.0.0.127 area 0
+net 192.4.0.128 0.0.0.127 area 0
+net 10.10.10.0 0.0.0.3 area 0
+
+//Protocolo OSPF en Router_B
+conf t
+router ospf 1
+net 192.4.1.0 0.0.0.63 area 0
+net 192.4.0.64 0.0.0.63 area 0
+net 192.4.0.128 0.0.0.63 area 0
+net 10.10.10.0 0.0.0.3 area 0
+
+//Trazar ruta desde PC0 para que tome la ruta del tunel
+tracert 192.4.1.2
+
+tiene que pasar por 192.4.1.2
+no hay isp, tomo la ruta del tunel

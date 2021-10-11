@@ -1,0 +1,168 @@
+//SUC A
+ena
+conf t
+interface gi 0/0
+ipv6 address 2001:aa::1/64
+no shut
+
+2001:aa::2/64
+2001:aa::3/64
+gateway:2001:aa::1
+
+//SUC B
+ena
+conf t
+interface gi 0/0
+ipv6 address 2001:bb::1/64
+no shut
+end
+
+2001:bb::2/64
+2001:bb::3/64
+gateway:2001:bb::1
+
+//SUC C
+ena
+conf t
+interface gi 0/0
+ipv6 address 2001:cc::1/64
+no shut
+end
+
+2001:cc::2/64
+2001:cc::3/64
+gateway:2001:cc::1
+
+//SUC D
+ena
+conf t
+interface gi 0/0
+ipv6 address 2001:dd::1/64
+no shut
+end
+
+2001:dd::2/64
+2001:dd::3/64
+gateway:2001:dd::1
+
+//Seriales en RouterA
+ena
+conf t
+interface s0/0/0
+ipv6 address 2001:ee::1/64
+encapsulation frame-relay
+no shut
+end
+
+//Seriales en RouterB
+ena
+conf t
+interface s0/0/0
+ipv6 address 2001:ee::2/64
+encapsulation frame-relay
+no shut
+end
+
+//Seriales en RouterC
+ena
+conf t
+interface s0/0/0
+ipv6 address 2001:ee::3/64
+encapsulation frame-relay
+no shut
+end
+
+//Seriales en RouterD
+ena
+conf t
+interface s0/0/0
+ipv6 address 2001:ee::4/64
+encapsulation frame-relay
+no shut
+end
+
+//Configurar cloud y frame relay
+one note
+
+//Frame relay en RouterA
+ena
+conf t
+interface s0/0/0
+frame-relay map ipv6 2001:ee::2 101
+frame-relay map ipv6 2001:ee::3 102
+frame-relay map ipv6 2001:ee::4 103
+end
+
+//Frame relay en RouterB
+ena
+conf t
+interface s0/0/0
+frame-relay map ipv6 2001:ee::1 201
+frame-relay map ipv6 2001:ee::4 202
+frame-relay map ipv6 2001:ee::3 203
+end
+
+//Frame relay en RouterC
+ena
+conf t
+interface s0/0/0
+frame-relay map ipv6 2001:ee::2 301
+frame-relay map ipv6 2001:ee::1 302
+frame-relay map ipv6 2001:ee::4 303
+end
+
+//Frame relay en RouterD
+ena
+conf t
+interface s0/0/0
+frame-relay map ipv6 2001:ee::3 401
+frame-relay map ipv6 2001:ee::2 402
+frame-relay map ipv6 2001:ee::1 403
+end
+
+//Rutas estaticas en RouterA
+-sh ipv6 route
+ena
+conf t
+ipv6 unicast-routing
+ipv6 route 2001:bb::/64 2001:ee::2
+ipv6 route 2001:cc::/64 2001:ee::3
+ipv6 route 2001:dd::/64 2001:ee::4
+end
+
+//Rutas estaticas en RouterB
+-sh ipv6 route
+ena
+conf t
+ipv6 unicast-routing
+ipv6 route 2001:aa::/64 2001:ee::1
+ipv6 route 2001:cc::/64 2001:ee::3
+ipv6 route 2001:dd::/64 2001:ee::4
+end
+
+//Rutas estaticas en RouterC
+-sh ipv6 route
+ena
+conf t
+ipv6 unicast-routing
+ipv6 route 2001:bb::/64 2001:ee::2
+ipv6 route 2001:aa::/64 2001:ee::1
+ipv6 route 2001:dd::/64 2001:ee::4
+end
+
+//Rutas estaticas en RouterD
+-sh ipv6 route
+ena
+conf t
+ipv6 unicast-routing
+ipv6 route 2001:bb::/64 2001:ee::2
+ipv6 route 2001:cc::/64 2001:ee::3
+ipv6 route 2001:aa::/64 2001:ee::1
+end
+
+//pings de extremo a extremo 
+entre todos los hosts:
+*ej
+ping 2001:bb::2
+ping 2001:cc::2
+ping 2001:dd::2

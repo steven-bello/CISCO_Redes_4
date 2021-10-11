@@ -1,0 +1,197 @@
+*No ipv6 address = para borrar direccion ipv6 erronea
+
+//R0  STEVEN
+ena
+conf t
+interface gi0/0
+ipv6 address 2001:a::1/64
+no shut
+end
+wr
+
+//interfaces seriales 
+conf t
+interface s0/0/0
+ipv6 address 2001:e1::1/64
+clock rate 128000
+no shut
+interface s0/0/1
+ipv6 address 2001:e3::2/64
+no shut
+exit
+ipv6 unicast-routing
+ipv6 router eigrp 100
+eigrp router-id 1.1.1.1
+no shut
+interface gi0/0
+ipv6 eigrp 100
+interface s0/0/0
+ipv6 eigrp 100
+interface s0/0/1
+ipv6 eigrp 100
+end
+wr
+
+//PPP CHAP (username con la del vecino)
+conf t
+ho STEVEN
+username BELLO password cisco
+interface s0/0/0
+encapsulation ppp 
+ppp authentication chap
+end
+wr
+
+//PPP CHAP (username con la del vecino)
+conf t
+ho STEVEN
+username HERNANDEZ password cisco
+interface s0/0/1
+encapsulation ppp 
+ppp authentication chap
+end
+wr
+
+**router-id 1.1.1.2 o 2.2.2.2
+**protocolo enrutamiento=habilita enrutamiento ipv6
+**ipv6 uniscast-routing
+
+//HOST R0 R-A
+2001:a::2/64
+2001:a::3/64
+
+gateway = 2001:a::1/64
+
+//R1 BELLO
+ena
+conf t
+interface gi0/0
+ipv6 address 2001:b::1/64
+no shut
+end
+wr
+
+//interfaces seriales 
+conf t
+interface s0/0/0
+ipv6 address 2001:e2::1/64
+clock rate 128000
+no shut
+interface s0/0/1
+ipv6 address 2001:e1::2/64
+no shut
+exit
+ipv6 unicast-routing
+ipv6 router eigrp 100
+eigrp router-id 2.2.2.2
+no shut
+interface gi0/0
+ipv6 eigrp 100
+interface s0/0/0
+ipv6 eigrp 100
+interface s0/0/1
+ipv6 eigrp 100
+end
+wr
+
+//PPP PAP (username local (mi nombre)
+conf t
+ho BELLO
+username BELLO password cisco
+interface s0/0/0
+encapsulation ppp 
+ppp authentication pap
+ppp pap sent-username HERNANDEZ password cisco
+end
+wr
+
+//PPP PAP (username local (mi nombre)
+conf t
+ho BELLO
+username BELLO password cisco
+interface s0/0/1
+encapsulation ppp 
+ppp authentication pap
+ppp pap sent-username STEVEN password cisco
+end
+wr
+
+//HOST R1 R-B
+2001:b::2/64
+2001:b::3/64
+
+gateway = 2001:b::1/64
+
+//R2 HERNANDEZ
+ena
+conf t
+interface gi0/0
+ipv6 address 2001:c::1/64
+no shut
+end
+wr
+
+//interfaces seriales 
+conf t
+interface s0/0/0
+ipv6 address 2001:e3::1/64
+clock rate 128000
+no shut
+interface s0/0/1
+ipv6 address 2001:e2::2/64
+no shut
+exit
+ipv6 unicast-routing
+ipv6 router eigrp 100
+eigrp router-id 3.3.3.3
+no shut
+interface gi0/0
+ipv6 eigrp 100
+interface s0/0/0
+ipv6 eigrp 100
+interface s0/0/1
+ipv6 eigrp 100
+end
+wr
+
+//PPP PAP (username local (mi nombre)
+conf t
+ho HERNANDEZ
+username HERNANDEZ password cisco
+interface s0/0/1
+encapsulation ppp 
+ppp authentication pap
+ppp pap sent-username BELLO password cisco
+end
+wr
+
+//PPP CHAP (username con la del vecino)
+conf t
+ho HERNANDEZ
+username STEVEN password cisco
+interface s0/0/0
+encapsulation ppp 
+ppp authentication chap
+end
+wr
+
+//HOST R2 R-C
+2001:c::2/64
+2001:c::3/64
+
+gateway = 2001:c::1/64
+
+//comandos verificacion
+sh ipv6 interface brief ...
+= funcionamiento de las interfaces resumido
+
+sh ipv6 route ..
+(D en CLI cisco = EIGRP)
+
+sh run
+
+debug pp packet ...
+= para identificar ppp
+
+no debug all ...
+= detener todos los debug

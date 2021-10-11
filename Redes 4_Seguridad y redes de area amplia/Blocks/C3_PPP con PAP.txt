@@ -1,0 +1,100 @@
+comandos clase3 
+PPP con PAP
+*No es cruzado el username
+*Checar networks en OSPF para lograr ping de extremo a extremo
+
+//R-STEVEN
+enable
+conf t
+username STEVEN password cisco
+interface s0/0/1
+ip add 172.32.0.1 255.255.255.252
+no shut 
+encapsulation ppp
+ppp authentication pap
+ppp pap sent-username BELLO password cisco
+end
+
+conf t 
+interface gi0/0
+ip add 192.168.20.1 255.255.255.240
+no shut
+end
+wr
+
+//R-BELLO
+enable
+conf t
+username BELLO password cisco
+interface s0/0/1
+ip add 172.32.0.2 255.255.255.252
+clock rate 128000
+no shut
+encapsulation ppp
+ppp authentication pap
+ppp pap sent-username STEVEN password cisco 
+end
+
+/bello con hernandez
+conf t
+*username BELLO password cisco* ya no se vuelve a poner
+interface s0/0/0
+ip add 172.33.0.1 255.255.255.252
+clock rate 128000
+no shut
+encapsulation ppp
+ppp authentication pap
+ppp pap sent-username HERNANDEZ password cisco
+end
+wr
+
+//R-HERNANDEZ
+ena
+conf t
+username HERNANDEZ password cisco
+interface s0/0/0
+ip add 172.33.0.2 255.255.255.252
+no shut
+encapsulation ppp
+ppp authentication pap
+ppp pap sent-username BELLO password cisco
+end
+
+conf t 
+interface gi0/0
+ip add 192.168.20.17 255.255.255.240
+no shut
+end
+wr
+
+//OPSF STEVEN
+conf t
+router ospf 1
+net 192.168.20.0 0.0.0.15 area 0
+net 172.32.0.0 0.0.0.3 area 0
+end
+wr
+
+//HOST STEVEN
+192.168.20.11/28 = 255.255.255.240
+192.168.20.12/28
+
+//OPSF BELLO
+conf t
+router ospf 1
+net 172.33.0.0 0.0.0.3 area 0
+net 172.32.0.0 0.0.0.3 area 0
+end
+wr
+
+//OPSF HERNANDEZ
+conf t
+router ospf 1
+net 192.168.20.16 0.0.0.15 area 0
+net 172.33.0.0 0.0.0.3 area 0
+end
+wr
+
+//HOST HERNANDEZ
+192.168.20.21/28 = 255.255.255.240
+192.168.20.22/28

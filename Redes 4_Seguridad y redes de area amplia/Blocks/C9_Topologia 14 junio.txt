@@ -1,0 +1,45 @@
+**
+** tunel gre = crea de manera logica para enviar info de sucursal a sucursal
+
+IP S1 de R_B: 192.168.2.250
+
+//Router_A
+ena
+conf t
+interface tunnel 0
+ip add 15.15.15.1 255.255.255.252
+tunnel source s0/0/0
+tunnel destination 192.168.2.250
+do sh ip interface brief
+
+//ruta estatica 
+ip route 0.0.0.0 0.0.0.0 s0/0/0
+(AND IP Y MASCARA RESULTADO RED)
+
+//OSPF
+conf t
+router ospf 1
+net 192.168.0.0 0.0.0.255 area 0
+net 15.15.15.0 0.0.0.3 area 0
+
+-traceroute ip (traceroute 192.168.1.2)
+
+//Router_B
+ena
+conf t
+interface tunnel 0
+ip add 15.15.15.2 255.255.255.252
+tunnel source s0/0/1
+tunnel destination 192.168.2.253
+do sh ip interface brief
+
+//ruta estatica 
+ip route 0.0.0.0 0.0.0.0 s0/0/1
+
+//OSPF
+conf t
+router ospf 1
+net 192.168.1.0 0.0.0.255 area 0
+net 15.15.15.0 0.0.0.3 area 0
+
+

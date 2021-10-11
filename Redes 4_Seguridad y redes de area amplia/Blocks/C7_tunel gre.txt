@@ -1,0 +1,149 @@
+*port-channel = es exclusivo vlan 1
+*enlace truncal = convertir trafico de exclusivo a cualquier vlan configurada 
+*int gi 0/0.10 = interfaz logica, sin no shut , suben en automatico
+*encapsulation dot1q 10 = vincular gi 0/0 con la vlan 10
+*sh vtp status = version de vtp,si es servidor o cliente y dominio
+
+//Sucursal A
+ena
+conf t
+interface s0/0/0
+ip add 10.10.10.1 255.255.255.252
+no shut
+int gi 0/0
+no shut
+
+//subinterfaces sucursal A
+conf t
+int gi 0/0.10
+encapsulation dot1q 10
+ip add 192.168.0.1 255.255.255.128
+int gi 0/0.20
+encapsulation dot1q 20
+ip add 192.168.0.129 255.255.255.128
+
+//host vlan 10
+gateway: 192.168.0.1
+PC0: 192.168.0.2 / 255.255.255.128
+PC2: 192.168.0.3 / 255.255.255.128
+
+//host vlan 20
+gateway: 192.168.0.129
+PC1: 192.168.0.130 / 255.255.255.128
+PC3: 192.168.0.131 / 255.255.255.128
+
+//tunnel A
+conf t
+interface tunnel 0
+ip add 192.168.1.1 255.255.255.252
+tunnel source s0/0/0
+tunnel destination 10.10.10.6
+--sh ip interface brief
+--sh ip route
+
+//subir tunnel 0
+conf t 
+ip route 0.0.0.0 0.0.0.0 s0/0/0
+
+//Switch_Servidor 
+//VTP SERVIDOR
+ena
+conf t
+vtp mode server
+vtp domain cisco
+vtp password cisco
+vlan 10
+name bello
+vlan 20
+name hernandez
+--sh vtp status 
+
+//etherchannel
+conf t
+interface range fa 0/22-24
+switchport mode access
+channel-group 1 mode active
+
+//modo troncal
+interface port-channel 1
+switchport mode access
+switchport mode trunk
+
+//modo troncal
+interface gi0/1
+switchport mode access
+switchport mode trunk
+
+//modo acceso vlans de swicthes servidor y cliente
+conf t
+int range fa 0/1-9
+switchport mode access 
+switchport access vlan 10
+int range fa 0/10-19
+switchport mode access 
+switchport access vlan 10
+--sh vlan
+
+//Switch_Cliente
+//VTP CLIENTE
+ena
+conf t
+vtp mode client
+vtp domain cisco
+vtp password cisco
+--sh vtp status
+
+//etherchannel
+conf t
+interface range fa 0/22-24
+switchport mode access
+channel-group 1 mode passive
+
+//modo troncal
+interface port-channel 1
+switchport mode access
+switchport mode trunk
+
+//ISP 
+ena
+conf t
+interface s0/0/0
+ip add 10.10.10.2 255.255.255.252
+clock rate 128000
+no shut
+interface s0/0/1
+ip add 10.10.10.5 255.255.255.252
+clock rate 128000
+end
+ 
+
+//Sucursal B
+ena
+conf t
+interface s0/0/1
+ip add 10.10.10.6 255.255.255.252
+no shut
+int gi 0/0
+ip add 172.16.32.1 255.255.254.0
+no shut
+end
+
+//tunnel B
+conf t
+interface tunnel 0
+ip add 192.168.1.2 255.255.255.252
+tunnel source s0/0/1
+tunnel destination 10.10.10.1
+--sh ip interface brief
+--sh ip route
+
+//subir tunel 0
+conf t 
+ip route 0.0.0.0 0.0.0.0 s0/0/1
+
+//HOSTS B
+PC4: 172.16.32.2 / 255.255.254.0
+PC5: 172.16.32.3 / 255.255.254.0
+ 
+//Tunel 
+red 192.168.0.1/30

@@ -1,0 +1,144 @@
+//ROUTER_A
+ena 
+conf t
+int gi0/0
+//ultima ip HOST
+ip add 192.168.80.126 255.255.255.128
+no shut
+//enlace 1
+int s0/0/0
+ip add 192.168.81.97 255.255.255.252
+no shut 
+exit
+ip dhcp pool cisco
+net 192.168.80.0 255.255.255.128
+default-router 192.168.80.126
+exit
+router ospf 1
+net 192.168.80.0 0.0.0.127 area 0
+net 192.168.81.96 0.0.0.3 area 0
+
+*ACTIVAR DHCP EN HOST*
+
+//ROUTER_B
+ena 
+conf t
+int gi0/0
+//ultima ip HOST
+ip add 192.168.80.254 255.255.255.128
+no shut
+//enlace 2
+int s0/0/1
+ip add 192.168.81.101 255.255.255.252
+no shut 
+exit
+ip dhcp pool cisco
+net 192.168.80.128 255.255.255.128
+default-router 192.168.80.254
+exit
+router ospf 1
+net 192.168.80.128 0.0.0.127 area 0
+net 192.168.81.100 0.0.0.3 area 0
+
+//ROUTER_C
+ena 
+conf t
+int gi0/0
+//ultima ip HOST
+ip add 192.168.81.62 255.255.255.192
+no shut
+//enlace 3
+int s0/0/0
+ip add 192.168.81.105 255.255.255.252
+no shut 
+exit
+ip dhcp pool cisco
+net 192.168.81.0 255.255.255.192
+default-router 192.168.81.62
+exit
+router ospf 1
+net 192.168.81.0 0.0.0.63 area 0
+net 192.168.81.104 0.0.0.3 area 0
+
+//ACL ROUTER_A y 1 host ROUTER_B
+conf t
+access-list 5 permit 192.168.80.0 0.0.0.127
+access-list 5 permit 192.168.80.130 0.0.0.0
+int gi0/0
+ip access-group 5 out
+
+//ROUTER_D
+ena 
+conf t
+int gi0/0
+//ultima ip HOST
+ip add 192.168.81.94 255.255.255.224
+no shut
+//enlace 4
+int s0/0/0
+ip add 192.168.81.109 255.255.255.252
+no shut 
+exit
+ip dhcp pool cisco
+net 192.168.81.64 255.255.255.224
+default-router 192.168.81.94
+exit
+router ospf 1
+net 192.168.81.64 0.0.0.31 area 0
+net 192.168.81.108 0.0.0.3 area 0
+
+//FTP en server0
+GATEWAY 192.168.81.62
+
+//FTP en PC0
+ftp 192.168.81.10
+username: steven
+password:4321
+
+//ir a desktop y en text editor
+Steven Armando Bello Hernandez
+
+//guardar como steven.txt
+
+//en cmd
+put steven.txt
+dir 
+quit 
+
+//en PC3 dentro de cmd
+ftp 192.168.81.10
+username: steven
+password:4321
+
+dir
+get steven.txt
+
+//desktop
+abrir steven.txt
+
+
+//ROUTER_CENTRAL
+ena 
+conf t
+ho Steven_Bello
+int s0/0/0
+ip add 192.168.81.98 255.255.255.252
+clock rate 128000
+no shut
+int s0/0/1
+ip add 192.168.81.102 255.255.255.252
+clock rate 128000
+no shut
+int s0/1/0
+ip add 192.168.81.106 255.255.255.252
+clock rate 128000
+no shut
+int s0/1/1
+ip add 192.168.81.110 255.255.255.252
+clock rate 128000
+no shut
+router ospf 1
+network 192.168.81.96 0.0.0.3 area 0
+network 192.168.81.100 0.0.0.3 area 0
+network 192.168.81.104 0.0.0.3 area 0
+network 192.168.81.108 0.0.0.3 area 0

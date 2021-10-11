@@ -1,0 +1,28 @@
+//1
+conf t
+access-list 100 permit tcp any 172.16.35.2 0.0.0.0 eq 80
+access-list 100 permit udp any 172.16.35.2 0.0.0.0 eq 53
+access-list 100 permit ip host 172.16.32.2 any
+
+//TFTP
+access-list 100 permit udp 172.16.35.0 0.0.0.127 host 172.16.35.129 eq 69
+access-list 100 permit udp 172.16.35.142 0.0.0.0 host 172.16.35.129 eq 69
+
+//FTP
+//a
+access-list 100 permit tcp 172.16.32.0 0.0.1.255 host 172.16.35.129 eq 20
+access-list 100 permit tcp 172.16.32.1 0.0.0.0 host 172.16.35.129 eq 20
+access-list 100 permit tcp 172.16.32.0 0.0.1.255 host 172.16.35.129 eq 21
+access-list 100 permit tcp 172.16.32.1 0.0.0.0 host 172.16.35.129 eq 21
+access-list 100 permit tcp 172.16.32.0 0.0.1.255 host 172.16.35.129 eq 23
+access-list 100 permit tcp 172.16.32.1 0.0.0.0 host 172.16.35.129 eq 23
+//b
+access-list 100 permit tcp 172.16.34.0 0.0.0.255 host 172.16.35.129 eq 20
+access-list 100 permit tcp 172.16.34.1 0.0.0.0 host 172.16.35.129 eq 20
+access-list 100 permit tcp 172.16.34.0 0.0.0.255 host 172.16.35.129 eq 21
+access-list 100 permit tcp 172.16.34.1 0.0.0.0 host 172.16.35.129 eq 21
+access-list 100 permit tcp 172.16.34.0 0.0.0.255 host 172.16.35.129 eq 23
+access-list 100 permit tcp 172.16.34.1 0.0.0.0 host 172.16.35.129 eq 23
+int gi0/1
+ip access-group 100 out
+

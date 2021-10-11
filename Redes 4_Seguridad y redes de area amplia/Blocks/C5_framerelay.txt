@@ -1,0 +1,75 @@
+ROUTER SUCURSAL C
+ena
+conf t
+interface gi0/0
+ip add 172.16.16.1 255.255.252.0
+no shut
+end
+
+//Frame-relay en seriales
+conf t 
+interface s0/0/0
+encapsulation frame-relay
+ip add 11.11.11.3 255.255.255.248
+no shut
+end
+
+ROUTER SUCURSAL B
+ena
+conf t
+interface gi0/0
+ip add 172.16.22.1 255.255.255.0
+no shut
+end
+
+//Frame-relay en seriales
+conf t 
+interface s0/0/0
+encapsulation frame-relay
+ip add 11.11.11.2 255.255.255.248
+no shut
+end
+
+ROUTER SUCURSAL A
+ena
+conf t
+interface gi0/0
+ip add 172.16.20.1 255.255.254.0
+no shut
+end
+
+//Frame-relay en seriales
+conf t 
+interface s0/0/0
+encapsulation frame-relay
+ip add 11.11.11.1 255.255.255.248
+no shut
+end
+
+//Nube frame relay
+one note
+el siguiente salto
+
+//Router A=0
+conf t
+ip route 172.16.22.0 255.255.255.0 11.11.11.2
+ip route 172.16.16.0 255.255.252.0 11.11.11.3 
+end
+wr
+
+//Router B=1
+conf t
+ip route 172.16.20.0 255.255.254.0 11.11.11.1
+ip route 172.16.16.0 255.255.252.0 11.11.11.3 
+end
+wr
+
+//Router C=2
+conf t
+ip route 172.16.20.0 255.255.254.0 11.11.11.1
+ip route 172.16.22.0 255.255.255.0 11.11.11.2 
+end
+wr
+
+//verificacion
+sh ip route

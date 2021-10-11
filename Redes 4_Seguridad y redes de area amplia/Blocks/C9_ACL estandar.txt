@@ -1,0 +1,74 @@
+ACL estandar
+//comandos verificacion
+sh ip protocols
+sh run
+*DHCP
+
+//Router0
+ena 
+conf t
+ho Steven_Bello_1
+enable secret cisco
+line console 0 
+password cisco
+login
+line vty 0 4
+password cisco
+login
+
+//Ingreso a traves de PC0
+telnet 192.168.0.1
+
+conf t
+ho Anna
+
+
+//Router1
+ena 
+conf t
+ho Steven_Bello_2
+enable secret cisco
+line console 0 
+password cisco
+login
+line vty 0 4
+password cisco
+login
+
+//Router2
+ena 
+conf t
+ho Steven_Bello_3
+enable secret cisco
+line console 0 
+password cisco
+login
+line vty 0 4
+password cisco
+login
+
+//ACL estandar (1 hasta 9)
+**implicita un denegar todo
+
+//Router0
+conf t
+access-list 1 permit host 192.168.0.2  
+line vty 0 4
+access-class 1 in
+-do sh access-list
+
+//ACL estandar (1 hasta 99)
+//Router1
+conf t
+access-list 2 permit host 192.168.2.2  
+line vty 0 4
+access-class 2 in
+-do sh access-list
+
+//ACL estandar (1 hasta 99)
+//Router2
+conf t
+access-list 3 permit host 192.168.2.132  
+-do sh access-list
+line vty 0 4
+access-class 3 in
